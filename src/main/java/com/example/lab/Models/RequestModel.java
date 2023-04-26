@@ -1,9 +1,15 @@
 package com.example.lab.Models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class RequestModel {
 
+    @JsonProperty("real")
 
     private Double real;
+
+    @JsonProperty("image")
+
     private Double image;
 
     public Double getReal() {
