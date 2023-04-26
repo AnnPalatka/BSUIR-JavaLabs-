@@ -19,6 +19,27 @@ public class ResponseCollectionModel {
     public ResponseCollectionModel(Collection<ResponseModel> collection) {
         this.collection = collection;
     }
+
     public ResponseCollectionModel() {
+    }
+
+    private Double middlePhase;
+
+    private Double middleModule;
+
+    public Double getMiddlePhase() {
+        return middlePhase;
+    }
+
+    public void setMiddlePhase(Double middlePhase) {
+        this.middlePhase = middlePhase;
+    }
+
+    public Double getMiddleModule() {
+        return middleModule;
+    }
+
+    public void setMiddleModule(Double middleModule) {
+        this.middleModule = middleModule;
     }
 }

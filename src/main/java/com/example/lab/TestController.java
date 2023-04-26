@@ -81,7 +81,17 @@ public class TestController {
 
         }).collect(Collectors.toCollection(ArrayList::new));
 
-        return new ResponseCollectionModel(array);
+        var phases = array.stream().parallel().map(ResponseModel::getPhase).collect(Collectors.toCollection(ArrayList::new));
+        var middlePhase = phases.stream().reduce(Double::sum).get() / phases.size();
+
+        var modules = array.stream().parallel().map(ResponseModel::getModule).collect(Collectors.toCollection(ArrayList::new));
+        var middleModule = modules.stream().reduce(Double::sum).get() / modules.size();
+
+        var response = new ResponseCollectionModel(array);
+        response.setMiddleModule(middleModule);
+        response.setMiddlePhase(middlePhase);
+
+        return response;
     }
 
     @GetMapping("/stat")
