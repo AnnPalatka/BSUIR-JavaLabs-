@@ -5,41 +5,31 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collection;
 
 public class ResponseCollectionModel {
-    @JsonProperty("collection")
-    private Collection<ResponseModel> collection;
+    @JsonProperty("results")
+    private Collection<ResponseModel> results;
 
-    public Collection<ResponseModel> getCollection() {
-        return collection;
+    @JsonProperty("aggregatedResults")
+
+    private AggregateModel aggregatedResults;
+
+    public Collection<ResponseModel> getResults() {
+        return results;
     }
 
-    public void setCollection(Collection<ResponseModel> collection) {
-        this.collection = collection;
+    public void setResults(Collection<ResponseModel> results) {
+        this.results = results;
     }
 
-    public ResponseCollectionModel(Collection<ResponseModel> collection) {
-        this.collection = collection;
+    public AggregateModel getAggregatedResults() {
+        return aggregatedResults;
     }
 
-    public ResponseCollectionModel() {
+    public ResponseCollectionModel(Collection<ResponseModel> results, AggregateModel aggregatedResults) {
+        this.results = results;
+        this.aggregatedResults = aggregatedResults;
     }
 
-    private Double middlePhase;
-
-    private Double middleModule;
-
-    public Double getMiddlePhase() {
-        return middlePhase;
-    }
-
-    public void setMiddlePhase(Double middlePhase) {
-        this.middlePhase = middlePhase;
-    }
-
-    public Double getMiddleModule() {
-        return middleModule;
-    }
-
-    public void setMiddleModule(Double middleModule) {
-        this.middleModule = middleModule;
+    public void setAggregatedResults(AggregateModel aggregatedResults) {
+        this.aggregatedResults = aggregatedResults;
     }
 }

@@ -13,7 +13,6 @@ public class CounterService {
 
     private final Lock lock = new ReentrantLock();
 
-
     public void Add()
     {
         lock.lock();

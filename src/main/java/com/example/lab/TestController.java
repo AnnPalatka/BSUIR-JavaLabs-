@@ -1,9 +1,13 @@
 package com.example.lab;
 
+import com.example.lab.Entities.ComplexNumberEntity;
+import com.example.lab.Entities.OperationEntity;
+import com.example.lab.Interfaces.Repositories.OperationRepository;
 import com.example.lab.Models.RequestCollectionModel;
 import com.example.lab.Models.RequestModel;
 import com.example.lab.Models.ResponseCollectionModel;
 import com.example.lab.Models.ResponseModel;
+import com.example.lab.Services.AggregateService;
 import com.example.lab.Services.CacheService;
 import com.example.lab.Services.ComputeService;
 import com.example.lab.Services.CounterService;
@@ -27,6 +31,8 @@ public class TestController {
     private ComputeService computeService;
 
     @Autowired
+    private OperationRepository operationRepository;
+    @Autowired
     private CacheService<RequestModel, ResponseModel> cacheService;
 
     @Autowired
@@ -46,7 +52,7 @@ public class TestController {
         if(response != null)
             return response;
 
-        var complexEntity = computeService.compute(model.getReal(), model.getImage());
+        var complexEntity = computeService.compute(model.getReal(), model.getReal());
 
         response = new ResponseModel(complexEntity.getPhase(), complexEntity.getModule());
 
@@ -56,42 +62,26 @@ public class TestController {
     }
 
     @PostMapping(value="/compute/collection", consumes = "application/json", produces = "application/json")
-    public ResponseCollectionModel computeCollection(@RequestBody ArrayList<RequestModel> data)
+    public ResponseCollectionModel computeCollection(@RequestBody ArrayList<RequestModel> model)
     {
         counterService.Add();
 
-        if (!data.stream().parallel().allMatch(m -> m.getImage() > 0)) {
+        if (!model.stream().parallel().allMatch(m -> m.getImage() > 0)) {
             logger.info("Wrong argument");
             throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Error");
         }
 
-        var array = data.stream().parallel().map(m ->
-        {
-            ResponseModel tmp = cacheService.Get(m);
-            if(tmp != null)
-                return tmp;
+        var data = model.stream().parallel().map(x -> new ComplexNumberEntity(x.getReal(), x.getImage()))
+                .collect(Collectors.toCollection(ArrayList::new));
 
-            var complexEntity = computeService.compute(m.getReal(), m.getImage());
+        var results = computeService.compute(data);
 
-            tmp = new ResponseModel(complexEntity.getPhase(), complexEntity.getModule());
+        var aggregateModel = AggregateService.Aggregate(results);
 
-            cacheService.Push(m, tmp);
+        var resultModels = results.stream().parallel().map(x -> new ResponseModel(x.getPhase(), x.getModule()))
+                .collect(Collectors.toCollection(ArrayList::new));
 
-            return tmp;
-
-        }).collect(Collectors.toCollection(ArrayList::new));
-
-        var phases = array.stream().parallel().map(ResponseModel::getPhase).collect(Collectors.toCollection(ArrayList::new));
-        var middlePhase = phases.stream().reduce(Double::sum).get() / phases.size();
-
-        var modules = array.stream().parallel().map(ResponseModel::getModule).collect(Collectors.toCollection(ArrayList::new));
-        var middleModule = modules.stream().reduce(Double::sum).get() / modules.size();
-
-        var response = new ResponseCollectionModel(array);
-        response.setMiddleModule(middleModule);
-        response.setMiddlePhase(middlePhase);
-
-        return response;
+        return new ResponseCollectionModel(resultModels, aggregateModel);
     }
 
     @GetMapping("/stat")
