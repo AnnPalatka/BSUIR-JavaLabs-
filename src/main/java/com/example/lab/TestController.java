@@ -7,10 +7,7 @@ import com.example.lab.Models.RequestCollectionModel;
 import com.example.lab.Models.RequestModel;
 import com.example.lab.Models.ResponseCollectionModel;
 import com.example.lab.Models.ResponseModel;
-import com.example.lab.Services.AggregateService;
-import com.example.lab.Services.CacheService;
-import com.example.lab.Services.ComputeService;
-import com.example.lab.Services.CounterService;
+import com.example.lab.Services.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +28,8 @@ public class TestController {
     private ComputeService computeService;
 
     @Autowired
-    private OperationRepository operationRepository;
+    private OperationRepositoryService operationRepositoryService;
+
     @Autowired
     private CacheService<RequestModel, ResponseModel> cacheService;
 
@@ -52,7 +50,9 @@ public class TestController {
         if(response != null)
             return response;
 
-        var complexEntity = computeService.compute(model.getReal(), model.getReal());
+        var complexEntity = computeService.compute(model.getReal(), model.getImage());
+
+        operationRepositoryService.create(model.getReal(), model.getImage(), complexEntity.getPhase(), complexEntity.getModule());
 
         response = new ResponseModel(complexEntity.getPhase(), complexEntity.getModule());
 
@@ -78,10 +78,30 @@ public class TestController {
 
         var aggregateModel = AggregateService.Aggregate(results);
 
+        operationRepositoryService.createCollection(data, results);
+
         var resultModels = results.stream().parallel().map(x -> new ResponseModel(x.getPhase(), x.getModule()))
                 .collect(Collectors.toCollection(ArrayList::new));
 
         return new ResponseCollectionModel(resultModels, aggregateModel);
+    }
+
+    @PostMapping(value="/async/compute", consumes = "application/json", produces = "application/json")
+    public Integer computeAsync(@RequestBody RequestModel model)
+    {
+        var entity = operationRepositoryService.create(model.getReal(), model.getImage());
+
+        computeService.computeAsync(entity);
+
+        return entity.getId();
+    }
+
+    @GetMapping("/async/result")
+    public ResponseModel asyncResult(Integer entityId)
+    {
+        var entity = operationRepositoryService.getById(entityId);
+
+        return new ResponseModel(entity.getPhase(), entity.getModule());
     }
 
     @GetMapping("/stat")
