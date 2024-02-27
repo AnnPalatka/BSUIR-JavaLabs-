@@ -43,7 +43,7 @@ public class ComputeService {
             try {
                 var result = compute(entity.getReal(), entity.getImage());
 
-                Thread.sleep(7000);
+                Thread.sleep(10000);
                 operationRepositoryService.update(entity, entity.getReal(), entity.getImage(), result.getPhase(), result.getModule());
                 logger.info("computed");
 
